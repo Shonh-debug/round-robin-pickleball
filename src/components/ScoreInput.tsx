@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { Match } from '@/lib/types';
 import { useTournament } from '@/lib/tournament-context';
@@ -30,18 +29,15 @@ export default function ScoreInput({ match, roundId, onClose }: ScoreInputProps)
     onClose();
   };
 
-  return createPortal(
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
+        initial={{ scale: 0.9, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
         className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/30 w-full max-w-md overflow-hidden"
@@ -143,7 +139,6 @@ export default function ScoreInput({ match, roundId, onClose }: ScoreInputProps)
           </div>
         </div>
       </motion.div>
-    </motion.div>,
-    document.body
+    </div>
   );
 }
