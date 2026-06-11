@@ -40,7 +40,7 @@ export default function ScoreInput({ match, roundId, onClose }: ScoreInputProps)
         animate={{ scale: 1, y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/30 w-full max-w-md overflow-hidden"
+        className="bg-surface-container-lowest rounded-2xl shadow-2xl border border-outline-variant/30 w-[90vw] max-w-[400px] overflow-hidden"
       >
         {/* Header */}
         <div className="bg-primary-container p-5 flex justify-between items-center">
