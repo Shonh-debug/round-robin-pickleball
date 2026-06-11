@@ -1,26 +1,143 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROCKII PICKLEBALL — Design System Tokens (from Stitch "Rockii Pickleball Dashboard")
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ─── Colors ─────────────────────────────────────────────────────────── */
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #09164a;
+  --color-on-primary-container: #7681b9;
+  --color-primary-fixed: #dde1ff;
+  --color-primary-fixed-dim: #b9c3ff;
+  --color-on-primary-fixed: #09164a;
+  --color-on-primary-fixed-variant: #394377;
+  --color-inverse-primary: #b9c3ff;
+
+  --color-secondary: #006e0c;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #67fd5d;
+  --color-on-secondary-container: #00730d;
+  --color-secondary-fixed: #75ff69;
+  --color-secondary-fixed-dim: #4ae346;
+  --color-on-secondary-fixed: #002201;
+  --color-on-secondary-fixed-variant: #005306;
+
+  --color-tertiary: #676000;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #baae00;
+  --color-on-tertiary-container: #454000;
+  --color-tertiary-fixed: #f6e600;
+  --color-tertiary-fixed-dim: #d7ca00;
+  --color-on-tertiary-fixed: #1f1c00;
+  --color-on-tertiary-fixed-variant: #4d4800;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-surface: #fafaf3;
+  --color-on-surface: #1a1c18;
+  --color-surface-dim: #dadad4;
+  --color-surface-bright: #fafaf3;
+  --color-surface-variant: #e3e3dc;
+  --color-on-surface-variant: #45464f;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f4ed;
+  --color-surface-container: #eeeee7;
+  --color-surface-container-high: #e8e9e2;
+  --color-surface-container-highest: #e3e3dc;
+  --color-surface-tint: #505b91;
+
+  --color-outline: #767680;
+  --color-outline-variant: #c6c5d0;
+  --color-inverse-surface: #2f312d;
+  --color-inverse-on-surface: #f1f1ea;
+  --color-background: #fafaf3;
+  --color-on-background: #1a1c18;
+
+  /* ─── Typography ─────────────────────────────────────────────────────── */
+  --font-headline: "Hanken Grotesk", sans-serif;
+  --font-body: "Lexend", sans-serif;
+  --font-label: "JetBrains Mono", monospace;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ─── Spacing ────────────────────────────────────────────────────────── */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 48px;
+  --spacing-gutter: 24px;
+
+  /* ─── Border Radius ──────────────────────────────────────────────────── */
+  --radius-sm: 0.125rem;
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  font-family: var(--font-body);
+}
+
+/* ─── Material Symbols ─────────────────────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.material-symbols-outlined.fill {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ─── Scrollbar hiding ─────────────────────────────────────────────────── */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ─── Number input spinners ────────────────────────────────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ─── Print Styles ─────────────────────────────────────────────────────── */
+@media print {
+  header,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .shadow-sm,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  [class*="shadow-"] {
+    box-shadow: none !important;
+  }
 }

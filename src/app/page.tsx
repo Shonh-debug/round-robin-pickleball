@@ -1,65 +1,128 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useMemo } from 'react';
+import { useTournament } from '@/lib/tournament-context';
+import { computeLeaderboard } from '@/lib/round-robin';
+import PlayerInput from '@/components/PlayerInput';
+import RoundTabs from '@/components/RoundTabs';
+import MatchCard from '@/components/MatchCard';
+import FilterBar from '@/components/FilterBar';
+import Leaderboard from '@/components/Leaderboard';
+import ExportBar from '@/components/ExportBar';
+import { motion } from 'motion/react';
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+  const { tournament } = useTournament();
+  const [activeRound, setActiveRound] = useState(1);
+  const [playerFilter, setPlayerFilter] = useState('');
+  const [courtFilter, setCourtFilter] = useState('');
+
+  const hasSchedule = tournament.rounds.length > 0;
+
+  const currentRound = tournament.rounds.find((r) => r.roundNumber === activeRound);
+  const leaderboard = useMemo(
+    () => computeLeaderboard(tournament.players, tournament.rounds),
+    [tournament.players, tournament.rounds]
+  );
+
+  // Apply filters
+  const filteredMatches = useMemo(() => {
+    if (!currentRound) return [];
+    return currentRound.matches.filter((match) => {
+      // Player filter
+      if (playerFilter) {
+        const allPlayers = [...match.team1, ...match.team2];
+        if (!allPlayers.some((p) => p.name === playerFilter)) return false;
+      }
+      // Court filter
+      if (courtFilter) {
+        if (match.court.toString() !== courtFilter) return false;
+      }
+      return true;
+    });
+  }, [currentRound, playerFilter, courtFilter]);
+
+  // Show setup if no schedule exists
+  if (!hasSchedule) {
+    return (
+      <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-12 py-12">
+        <PlayerInput />
       </main>
-    </div>
+    );
+  }
+
+  // Show tournament dashboard
+  return (
+    <main className="flex-grow w-full max-w-[1280px] mx-auto px-4 md:px-12 py-8 flex flex-col lg:flex-row gap-6">
+      {/* Main Content */}
+      <div className="flex-grow flex flex-col gap-5 min-w-0">
+        {/* Title + Export */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div>
+            <h2 className="font-headline text-2xl md:text-3xl font-extrabold text-on-background tracking-tight">
+              {tournament.config.name}
+            </h2>
+            <p className="font-body text-sm text-on-surface-variant mt-1">
+              {tournament.config.mode === 'doubles' ? 'Doubles' : 'Singles'}
+              {tournament.config.mode === 'doubles' && (
+                <> • {tournament.config.doublesPartnerMode === 'rotating' ? 'Rotating Partners' : 'Fixed Partners'}</>
+              )}
+              {' '}• {tournament.players.length} Players • {tournament.rounds.length} Rounds • {tournament.config.numberOfCourts} Court{tournament.config.numberOfCourts > 1 ? 's' : ''}
+            </p>
+          </div>
+          <ExportBar />
+        </motion.div>
+
+        {/* Round Tabs + Filters */}
+        <div>
+          <RoundTabs
+            totalRounds={tournament.rounds.length}
+            activeRound={activeRound}
+            onRoundChange={setActiveRound}
+          />
+          {currentRound && (
+            <FilterBar
+              matches={currentRound.matches}
+              playerFilter={playerFilter}
+              courtFilter={courtFilter}
+              onPlayerFilterChange={setPlayerFilter}
+              onCourtFilterChange={setCourtFilter}
+            />
+          )}
+        </div>
+
+        {/* Match Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredMatches.map((match, i) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              roundId={currentRound!.id}
+              index={i}
+            />
+          ))}
+        </div>
+
+        {filteredMatches.length === 0 && currentRound && (
+          <div className="text-center py-12 text-on-surface-variant">
+            <span className="material-symbols-outlined text-4xl text-outline mb-2 block">
+              filter_alt_off
+            </span>
+            <p className="font-body text-sm">No matches found with current filters.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Sidebar Leaderboard */}
+      <aside className="w-full lg:w-80 flex-shrink-0">
+        <div className="sticky top-28">
+          <Leaderboard stats={leaderboard} compact={true} />
+        </div>
+      </aside>
+    </main>
   );
 }
