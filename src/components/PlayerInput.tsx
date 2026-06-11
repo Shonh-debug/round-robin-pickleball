@@ -326,7 +326,7 @@ export default function PlayerInput() {
             : 'bg-surface-container text-outline cursor-not-allowed'
         }`}
       >
-        <span className="material-symbols-outlined text-2xl">auto_awesome</span>
+        <span className="material-symbols-outlined text-2xl">sports_tennis</span>
         Generate Round Robin Schedule
         {!canGenerate && (
           <span className="text-sm font-body font-normal ml-2">
