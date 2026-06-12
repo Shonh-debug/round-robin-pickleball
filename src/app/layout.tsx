@@ -3,6 +3,7 @@ import { Hanken_Grotesk, Lexend, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TournamentProvider } from "@/lib/tournament-context";
 import Header from "@/components/Header";
+import { Analytics } from "@vercel/analytics/next"
 
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-hanken-grotesk",
@@ -53,6 +54,7 @@ export default function RootLayout({
           <Header />
           {children}
         </TournamentProvider>
+        <Analytics />
       </body>
     </html>
   );
