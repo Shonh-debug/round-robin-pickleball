@@ -178,97 +178,136 @@ function generateRotatingDoublesRoundRobin(
   const shuffled = shuffleArray(players);
   const n = shuffled.length;
 
-  // Need at least 4 players for doubles
   if (n < 4) return [];
 
-  // Generate all possible team pairings
-  const allPairings: [number, number][] = [];
+  // Track history
+  // partnered[i-j] = number of times i and j have partnered
+  const partnered: Record<string, number> = {};
+  // opposed[i-j] = number of times i and j have opposed each other
+  const opposed: Record<string, number> = {};
+
   for (let i = 0; i < n; i++) {
-    for (let j = i + 1; j < n; j++) {
-      allPairings.push([i, j]);
-    }
-  }
-
-  // Generate all possible matchups (pair vs pair, no player overlap)
-  interface PossibleMatch {
-    team1: [number, number];
-    team2: [number, number];
-  }
-
-  const allMatchups: PossibleMatch[] = [];
-  for (let i = 0; i < allPairings.length; i++) {
-    for (let j = i + 1; j < allPairings.length; j++) {
-      const [a, b] = allPairings[i];
-      const [c, d] = allPairings[j];
-      // No player overlap
-      if (a !== c && a !== d && b !== c && b !== d) {
-        allMatchups.push({ team1: allPairings[i], team2: allPairings[j] });
-      }
+    for (let j = 0; j < n; j++) {
+      partnered[`${i}-${j}`] = 0;
+      opposed[`${i}-${j}`] = 0;
     }
   }
 
   const rounds: Round[] = [];
-  const usedMatchups = new Set<string>();
-  const playersPerRound = Math.floor(n / 4) * 4; // Players that can play (need groups of 4)
+  const playersPerRound = Math.floor(n / 4) * 4;
   const matchesPerRound = Math.floor(playersPerRound / 4);
 
-  // Determine max rounds possible
-  const totalRoundsNeeded = Math.min(
-    Math.floor(allMatchups.length / matchesPerRound),
-    n * 2 // Reasonable upper bound
-  );
-  const roundsToGenerate = maxRounds
-    ? Math.min(maxRounds, totalRoundsNeeded)
-    : Math.min(totalRoundsNeeded, n - 1); // Default cap
+  // Reasonable max rounds if not specified. E.g., for 8 players, it's 7.
+  const totalRoundsNeeded = maxRounds || (n % 2 === 0 ? n - 1 : n);
 
-  for (let roundIdx = 0; roundIdx < roundsToGenerate; roundIdx++) {
+  for (let roundIdx = 0; roundIdx < totalRoundsNeeded; roundIdx++) {
     const roundMatches: Match[] = [];
-    const playersUsedThisRound = new Set<number>();
+    const usedPlayersThisRound = new Set<number>();
     let courtNumber = 1;
 
-    // Greedily pick matchups where no player is used twice in the round
-    for (const matchup of allMatchups) {
-      const key = `${matchup.team1[0]}-${matchup.team1[1]}-vs-${matchup.team2[0]}-${matchup.team2[1]}`;
-      const reverseKey = `${matchup.team2[0]}-${matchup.team2[1]}-vs-${matchup.team1[0]}-${matchup.team1[1]}`;
+    for (let m = 0; m < matchesPerRound; m++) {
+      let bestMatch: { t1: [number, number]; t2: [number, number] } | null = null;
+      let bestScore = Infinity;
 
-      if (usedMatchups.has(key) || usedMatchups.has(reverseKey)) continue;
+      const available = [];
+      for (let i = 0; i < n; i++) {
+        if (!usedPlayersThisRound.has(i)) available.push(i);
+      }
 
-      const allPlayers = [
-        matchup.team1[0],
-        matchup.team1[1],
-        matchup.team2[0],
-        matchup.team2[1],
-      ];
+      if (available.length < 4) break;
 
-      if (allPlayers.some((p) => playersUsedThisRound.has(p))) continue;
+      const p1 = available[0];
 
-      // Accept this matchup
-      allPlayers.forEach((p) => playersUsedThisRound.add(p));
-      usedMatchups.add(key);
+      for (let i = 1; i < available.length; i++) {
+        const p2 = available[i];
+        for (let j = i + 1; j < available.length; j++) {
+          const p3 = available[j];
+          for (let k = j + 1; k < available.length; k++) {
+            const p4 = available[k];
 
-      roundMatches.push({
-        id: generateId(),
-        matchNumber: roundMatches.length + 1,
-        team1: [shuffled[matchup.team1[0]], shuffled[matchup.team1[1]]],
-        team2: [shuffled[matchup.team2[0]], shuffled[matchup.team2[1]]],
-        score1: null,
-        score2: null,
-        court: courtNumber,
-        status: 'upcoming',
-      });
+            const splits = [
+              { t1: [p1, p2], t2: [p3, p4] },
+              { t1: [p1, p3], t2: [p2, p4] },
+              { t1: [p1, p4], t2: [p2, p3] }
+            ];
 
-      courtNumber = courtNumber >= numberOfCourts ? 1 : courtNumber + 1;
+            for (const split of splits) {
+              const [a, b] = split.t1 as [number, number];
+              const [c, d] = split.t2 as [number, number];
 
-      if (roundMatches.length >= matchesPerRound) break;
+              // Score calculation
+              // Heavy penalty for repeating partners
+              const partnerScore = 
+                (partnered[`${a}-${b}`] * 1000) + 
+                (partnered[`${c}-${d}`] * 1000);
+              
+              // Lighter penalty for repeating opponents
+              const opposeScore = 
+                (opposed[`${a}-${c}`] * 10) + (opposed[`${a}-${d}`] * 10) +
+                (opposed[`${b}-${c}`] * 10) + (opposed[`${b}-${d}`] * 10);
+              
+              const score = partnerScore + opposeScore;
+
+              if (score < bestScore) {
+                bestScore = score;
+                bestMatch = { t1: [a, b], t2: [c, d] };
+              }
+              
+              if (bestScore === 0) break;
+            }
+            if (bestScore === 0) break;
+          }
+          if (bestScore === 0) break;
+        }
+        if (bestScore === 0) break;
+      }
+
+      if (bestMatch) {
+        const { t1, t2 } = bestMatch;
+        usedPlayersThisRound.add(t1[0]);
+        usedPlayersThisRound.add(t1[1]);
+        usedPlayersThisRound.add(t2[0]);
+        usedPlayersThisRound.add(t2[1]);
+
+        // Update tracking
+        partnered[`${t1[0]}-${t1[1]}`]++;
+        partnered[`${t1[1]}-${t1[0]}`]++;
+        partnered[`${t2[0]}-${t2[1]}`]++;
+        partnered[`${t2[1]}-${t2[0]}`]++;
+
+        const opponents = [
+          [t1[0], t2[0]], [t1[0], t2[1]],
+          [t1[1], t2[0]], [t1[1], t2[1]]
+        ];
+        for (const [x, y] of opponents) {
+          opposed[`${x}-${y}`]++;
+          opposed[`${y}-${x}`]++;
+        }
+
+        roundMatches.push({
+          id: generateId(),
+          matchNumber: roundMatches.length + 1,
+          team1: [shuffled[t1[0]], shuffled[t1[1]]],
+          team2: [shuffled[t2[0]], shuffled[t2[1]]],
+          score1: null,
+          score2: null,
+          court: courtNumber,
+          status: 'upcoming',
+        });
+
+        courtNumber = courtNumber >= numberOfCourts ? 1 : courtNumber + 1;
+      }
     }
 
-    if (roundMatches.length === 0) break; // No more valid matchups
-
-    rounds.push({
-      id: generateId(),
-      roundNumber: roundIdx + 1,
-      matches: roundMatches,
-    });
+    if (roundMatches.length > 0) {
+      rounds.push({
+        id: generateId(),
+        roundNumber: roundIdx + 1,
+        matches: roundMatches,
+      });
+    } else {
+      break;
+    }
   }
 
   return rounds;
