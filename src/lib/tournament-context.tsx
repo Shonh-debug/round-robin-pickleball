@@ -93,6 +93,23 @@ function tournamentReducer(state: Tournament, action: TournamentAction): Tournam
       };
     }
 
+    case 'UPDATE_COURT': {
+      const { roundId, matchId, court } = action.payload;
+      return {
+        ...state,
+        rounds: state.rounds.map((round) => {
+          if (round.id !== roundId) return round;
+          return {
+            ...round,
+            matches: round.matches.map((match) => {
+              if (match.id !== matchId) return match;
+              return { ...match, court };
+            }),
+          };
+        }),
+      };
+    }
+
     case 'RESET_TOURNAMENT':
       return { ...defaultTournament, config: state.config };
 

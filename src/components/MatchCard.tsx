@@ -7,9 +7,11 @@ interface MatchCardProps {
   match: Match;
   index: number;
   onClickMatch: () => void;
+  onCourtChange: (court: number) => void;
+  maxCourts: number;
 }
 
-export default function MatchCard({ match, index, onClickMatch }: MatchCardProps) {
+export default function MatchCard({ match, index, onClickMatch, onCourtChange, maxCourts }: MatchCardProps) {
   const isFinished = match.status === 'finished';
   const isLive = match.status === 'live';
   const hasScore = match.score1 !== null && match.score2 !== null;
@@ -137,8 +139,24 @@ export default function MatchCard({ match, index, onClickMatch }: MatchCardProps
       </div>
 
       {/* Court footer */}
-      <div className="bg-surface py-2.5 text-center border-t border-outline-variant/30 font-mono text-[10px] tracking-[0.15em] text-on-surface-variant uppercase">
-        Court {match.court}
+      <div 
+        className="bg-surface py-1.5 text-center border-t border-outline-variant/30 font-mono text-[10px] tracking-[0.15em] text-on-surface-variant uppercase relative group"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <select
+          value={match.court}
+          onChange={(e) => onCourtChange(parseInt(e.target.value))}
+          className="appearance-none bg-transparent cursor-pointer text-center outline-none focus:text-primary-container font-bold group-hover:text-on-surface transition-colors uppercase w-full py-1"
+        >
+          {Array.from({ length: maxCourts }, (_, i) => i + 1).map((c) => (
+            <option key={c} value={c}>
+              COURT {c}
+            </option>
+          ))}
+        </select>
+        <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">
+          edit
+        </span>
       </div>
     </motion.div>
   );

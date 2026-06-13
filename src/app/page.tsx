@@ -14,7 +14,7 @@ import ScoreInput from '@/components/ScoreInput';
 import { motion } from 'motion/react';
 
 export default function Home() {
-  const { tournament } = useTournament();
+  const { tournament, dispatch } = useTournament();
   const [activeRound, setActiveRound] = useState(1);
   const [playerFilter, setPlayerFilter] = useState('');
   const [courtFilter, setCourtFilter] = useState('');
@@ -105,6 +105,8 @@ export default function Home() {
                 match={match}
                 index={i}
                 onClickMatch={() => setSelectedMatch({ match, roundId: currentRound!.id })}
+                onCourtChange={(court) => dispatch({ type: 'UPDATE_COURT', payload: { roundId: currentRound!.id, matchId: match.id, court } })}
+                maxCourts={tournament.config.numberOfCourts}
               />
             ))}
           </div>

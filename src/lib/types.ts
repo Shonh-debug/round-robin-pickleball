@@ -62,4 +62,5 @@ export type TournamentAction =
   | { type: 'GENERATE_ROUNDS'; payload: Round[] }
   | { type: 'UPDATE_SCORE'; payload: { roundId: string; matchId: string; score1: number; score2: number } }
   | { type: 'UPDATE_MATCH_STATUS'; payload: { roundId: string; matchId: string; status: Match['status'] } }
+  | { type: 'UPDATE_COURT'; payload: { roundId: string; matchId: string; court: number } }
   | { type: 'RESET_TOURNAMENT' };
